@@ -1,27 +1,51 @@
 import 'package:flutter/material.dart';
 
-class EventSearchBar extends StatelessWidget {
-  const EventSearchBar({super.key});
+class EventSearchBar extends StatefulWidget {
+  final Function(String)? onSearchChanged;
+
+  const EventSearchBar({
+    super.key,
+    this.onSearchChanged,
+  });
+
+  @override
+  State<EventSearchBar> createState() => _EventSearchBarState();
+}
+
+class _EventSearchBarState extends State<EventSearchBar> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: _controller,
       decoration: InputDecoration(
-        hintText: 'Rechercher un événement...',
+        hintText: 'Rechercher des événements...',
         prefixIcon: const Icon(Icons.search),
-        filled: true,
-        fillColor: Theme.of(context).cardColor,
+        suffixIcon: _controller.text.isNotEmpty
+            ? IconButton(
+                icon: const Icon(Icons.clear),
+                onPressed: () {
+                  _controller.clear();
+                  widget.onSearchChanged?.call('');
+                },
+              )
+            : null,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
         ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
+        filled: true,
+        fillColor: Colors.grey[50],
       ),
       onChanged: (value) {
-        // Logique de recherche
+        setState(() {}); // Pour mettre à jour le suffixIcon
+        widget.onSearchChanged?.call(value);
       },
     );
   }

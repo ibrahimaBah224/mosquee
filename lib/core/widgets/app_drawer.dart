@@ -74,6 +74,25 @@ class AppDrawer extends StatelessWidget {
 
                 const Divider(height: 32),
 
+                // Section Notre équipe
+                _buildSectionTitle('Notre Équipe'),
+                _buildMenuItem(
+                  context,
+                  icon: Icons.person,
+                  title: 'Nos Imams',
+                  subtitle: 'Guides spirituels de la mosquée',
+                  route: '/imams',
+                ),
+                _buildMenuItem(
+                  context,
+                  icon: Icons.record_voice_over,
+                  title: 'Nos Muezzins',
+                  subtitle: 'Ceux qui appellent à la prière',
+                  route: '/muezzins',
+                ),
+
+                const Divider(height: 32),
+
                 // Section Outils
                 _buildSectionTitle('Outils Islamiques'),
                 _buildMenuItem(
@@ -160,26 +179,49 @@ class AppDrawer extends StatelessWidget {
                         width: 2,
                       ),
                     ),
-                    child: const Icon(
-                      Icons.mosque,
-                      size: 40,
-                      color: Colors.white,
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        width: 60,
+                        height: 60,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          // Fallback vers l'icône mosquée si le logo ne charge pas
+                          return const Icon(
+                            Icons.mosque,
+                            size: 40,
+                            color: Colors.white,
+                          );
+                        },
+                      ),
                     ),
                   ),
 
                   const SizedBox(height: 20),
 
                   // Nom de la mosquée
-                  const Text(
-                    'Mosquée Al-Nour',
-                    style: TextStyle(
+                  Text(
+                    'MOMED',
+                    style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 24,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
 
                   const SizedBox(height: 8),
+
+                  // Sous-titre
+                  Text(
+                    'Mosquée Elhadj Daouda',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+
+                  const SizedBox(height: 4),
 
                   // Phrase islamique
                   Text(
@@ -287,18 +329,16 @@ class AppDrawer extends StatelessWidget {
     Color? iconColor,
   }) {
     final currentLocation = GoRouterState.of(context).uri.path;
-    final isSelected =
-        currentLocation == route ||
+    final isSelected = currentLocation == route ||
         (route != '/' && currentLocation.startsWith(route));
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color:
-            isSelected
-                ? Theme.of(context).primaryColor.withOpacity(0.1)
-                : Colors.transparent,
+        color: isSelected
+            ? Theme.of(context).primaryColor.withOpacity(0.1)
+            : Colors.transparent,
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -306,18 +346,16 @@ class AppDrawer extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color:
-                isSelected
-                    ? Theme.of(context).primaryColor.withOpacity(0.2)
-                    : Colors.grey.withOpacity(0.1),
+            color: isSelected
+                ? Theme.of(context).primaryColor.withOpacity(0.2)
+                : Colors.grey.withOpacity(0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
             icon,
-            color:
-                isSelected
-                    ? Theme.of(context).primaryColor
-                    : iconColor ?? Colors.grey[600],
+            color: isSelected
+                ? Theme.of(context).primaryColor
+                : iconColor ?? Colors.grey[600],
             size: 22,
           ),
         ),
@@ -334,14 +372,13 @@ class AppDrawer extends StatelessWidget {
           subtitle,
           style: TextStyle(color: Colors.grey[600], fontSize: 12),
         ),
-        trailing:
-            isSelected
-                ? Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: Theme.of(context).primaryColor,
-                )
-                : null,
+        trailing: isSelected
+            ? Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: Theme.of(context).primaryColor,
+              )
+            : null,
         onTap: () {
           Navigator.of(context).pop(); // Fermer le drawer
           if (!isSelected) {
@@ -388,7 +425,7 @@ class AppDrawer extends StatelessWidget {
 
           // Version et copyright
           Text(
-            'Mosquée Al-Nour v1.0.0',
+            'MOMED v1.0.0',
             style: TextStyle(color: Colors.grey[600], fontSize: 12),
           ),
           Text(
@@ -441,46 +478,45 @@ class AppDrawer extends StatelessWidget {
     Navigator.of(context).pop(); // Fermer le drawer
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Aide & Support'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildContactInfo(
-                  Icons.email,
-                  'Email',
-                  'support@mosquee-alnour.fr',
-                ),
-                const SizedBox(height: 12),
-                _buildContactInfo(
-                  Icons.phone,
-                  'Téléphone',
-                  '+33 1 23 45 67 89',
-                ),
-                const SizedBox(height: 12),
-                _buildContactInfo(
-                  Icons.location_on,
-                  'Adresse',
-                  '123 Rue de la Paix, Paris',
-                ),
-              ],
+      builder: (context) => AlertDialog(
+        title: const Text('Aide & Support'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildContactInfo(
+              Icons.email,
+              'Email',
+              'support@mosquee-alnour.fr',
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Fermer'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  context.go('/settings/about');
-                },
-                child: const Text('En savoir plus'),
-              ),
-            ],
+            const SizedBox(height: 12),
+            _buildContactInfo(
+              Icons.phone,
+              'Téléphone',
+              '+33 1 23 45 67 89',
+            ),
+            const SizedBox(height: 12),
+            _buildContactInfo(
+              Icons.location_on,
+              'Adresse',
+              '123 Rue de la Paix, Paris',
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Fermer'),
           ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.go('/settings/about');
+            },
+            child: const Text('En savoir plus'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -507,28 +543,27 @@ class AppDrawer extends StatelessWidget {
     Navigator.of(context).pop(); // Fermer le drawer
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Déconnexion'),
-            content: const Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Annuler'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  context.go('/auth/login');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Déconnexion'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('Déconnexion'),
+        content: const Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Annuler'),
           ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.go('/auth/login');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Déconnexion'),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -537,11 +572,10 @@ class AppDrawer extends StatelessWidget {
 class _IslamicPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint =
-        Paint()
-          ..color = Colors.white.withOpacity(0.1)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.0;
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
 
     final centerX = size.width / 2;
     final centerY = size.height / 2;

@@ -44,48 +44,43 @@ class _DonationAmountSelectorState extends State<DonationAmountSelector> {
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children:
-              _predefinedAmounts.map((amount) {
-                final isSelected = _selectedAmount == amount;
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedAmount = amount;
-                      _customAmountController.clear();
-                    });
-                    widget.onAmountChanged(amount);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color:
-                          isSelected
-                              ? Theme.of(context).primaryColor
-                              : Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(25),
-                      border: Border.all(
-                        color:
-                            isSelected
-                                ? Theme.of(context).primaryColor
-                                : Colors.grey.withOpacity(0.3),
-                      ),
-                    ),
-                    child: Text(
-                      '${amount.toInt()}€',
-                      style: TextStyle(
-                        color:
-                            isSelected
-                                ? Colors.white
-                                : Theme.of(context).textTheme.bodyMedium?.color,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+          children: _predefinedAmounts.map((amount) {
+            final isSelected = _selectedAmount == amount;
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedAmount = amount;
+                  _customAmountController.clear();
+                });
+                widget.onAmountChanged(amount);
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? Theme.of(context).primaryColor
+                      : Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(25),
+                  border: Border.all(
+                    color: isSelected
+                        ? Theme.of(context).primaryColor
+                        : Colors.grey.withOpacity(0.3),
                   ),
-                );
-              }).toList(),
+                ),
+                child: Text(
+                  '${amount.toInt()} GNF',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isSelected ? Colors.white : Colors.green.shade800,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
         ),
 
         const SizedBox(height: 16),
@@ -95,10 +90,10 @@ class _DonationAmountSelectorState extends State<DonationAmountSelector> {
           controller: _customAmountController,
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
-            labelText: 'Montant personnalisé (€)',
+            labelText: 'Montant personnalisé (GNF)',
             hintText: 'Entrez un montant',
-            prefixIcon: const Icon(Icons.euro),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            border: OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.attach_money),
             filled: true,
             fillColor: Theme.of(context).cardColor,
           ),
@@ -120,7 +115,7 @@ class _DonationAmountSelectorState extends State<DonationAmountSelector> {
         const SizedBox(height: 8),
 
         Text(
-          'Minimum: 1€ - Maximum: 10,000€',
+          'Minimum: 1 GNF - Maximum: 10,000 GNF',
           style: Theme.of(
             context,
           ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),

@@ -11,7 +11,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
     return BlocBuilder<MosqueInfoBloc, MosqueInfoState>(
       builder: (context, state) {
         // Valeurs par défaut en cas de chargement ou d'erreur
-        String mosqueName = 'Mosquée';
+        String mosqueName = 'MOMED';
         String location = 'Chargement...';
 
         if (state is MosqueInfoLoaded) {
@@ -25,21 +25,59 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           elevation: 0,
           backgroundColor: Theme.of(context).primaryColor,
           foregroundColor: Colors.white,
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          title: Row(
             children: [
-              Text(
-                mosqueName,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+              // Logo de la mosquée
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: 40,
+                    height: 40,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Fallback vers l'icône mosquée si le logo ne charge pas
+                      return const Icon(
+                        Icons.mosque,
+                        size: 24,
+                        color: Colors.white,
+                      );
+                    },
+                  ),
+                ),
               ),
-              Text(
-                location,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+              const SizedBox(width: 12),
+              // Texte du titre
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      mosqueName,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      location,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

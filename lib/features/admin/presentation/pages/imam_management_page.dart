@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/models/imam.dart';
 import '../../../../core/services/imam_service.dart';
+import '../../../../core/widgets/cloudinary_image.dart';
 
 class ImamManagementPage extends StatefulWidget {
   const ImamManagementPage({super.key});
@@ -343,19 +344,11 @@ class _ImamManagementPageState extends State<ImamManagementPage> {
               Row(
                 children: [
                   // Avatar ou icône
-                  CircleAvatar(
+                  CloudinaryAvatar(
+                    publicId: imam.photoUrl ?? '',
                     radius: 30,
                     backgroundColor: _getRankColor(imam.rank),
-                    backgroundImage: imam.photoUrl?.isNotEmpty == true
-                        ? NetworkImage(imam.photoUrl!)
-                        : null,
-                    child: imam.photoUrl?.isEmpty != false
-                        ? Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: 30,
-                          )
-                        : null,
+                    fallbackIcon: Icons.person,
                   ),
                   const SizedBox(width: 16),
 
@@ -600,15 +593,11 @@ class _ImamDetailsDialog extends StatelessWidget {
             // Header
             Row(
               children: [
-                CircleAvatar(
+                CloudinaryAvatar(
+                  publicId: imam.photoUrl ?? '',
                   radius: 30,
                   backgroundColor: _getRankColor(imam.rank),
-                  backgroundImage: imam.photoUrl?.isNotEmpty == true
-                      ? NetworkImage(imam.photoUrl!)
-                      : null,
-                  child: imam.photoUrl?.isEmpty != false
-                      ? const Icon(Icons.person, color: Colors.white, size: 30)
-                      : null,
+                  fallbackIcon: Icons.person,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -795,6 +784,7 @@ class _AddEditImamDialogState extends State<_AddEditImamDialog> {
   int _orderInHierarchy = 1;
   List<ImamSpecialty> _selectedSpecialties = [];
   bool _isLoading = false;
+  String? _photoUrl; // Ajout du champ photo
 
   @override
   void initState() {
@@ -819,6 +809,7 @@ class _AddEditImamDialogState extends State<_AddEditImamDialog> {
       _selectedRank = widget.imam!.rank;
       _orderInHierarchy = widget.imam!.orderInHierarchy;
       _selectedSpecialties = List.from(widget.imam!.specialties);
+      _photoUrl = widget.imam!.photoUrl; // Initialiser la photo existante
     }
   }
 
@@ -880,6 +871,20 @@ class _AddEditImamDialogState extends State<_AddEditImamDialog> {
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
+                      // Photo de profil
+                      Center(
+                        child: ProfileImageUploader(
+                          initialImageUrl: _photoUrl,
+                          onImageUploaded: (publicId) {
+                            setState(() {
+                              _photoUrl = publicId;
+                            });
+                          },
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
                       Row(
                         children: [
                           Expanded(
@@ -1173,6 +1178,7 @@ class _AddEditImamDialogState extends State<_AddEditImamDialog> {
         address: _addressController.text.trim().isNotEmpty
             ? _addressController.text.trim()
             : null,
+        photoUrl: _photoUrl, // Ajout de l'URL de la photo
         education: _educationController.text.trim().isNotEmpty
             ? _educationController.text.trim()
             : null,

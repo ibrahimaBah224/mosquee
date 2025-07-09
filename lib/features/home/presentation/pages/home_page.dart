@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../widgets/home_app_bar.dart';
@@ -8,6 +7,7 @@ import '../widgets/prayer_times_card.dart';
 import '../widgets/upcoming_events_section.dart';
 import '../widgets/latest_news_section.dart';
 import '../widgets/donation_banner.dart';
+import '../widgets/staff_sections.dart';
 import '../../../prayer/presentation/bloc/prayer_bloc.dart';
 import '../bloc/mosque_info_bloc.dart';
 
@@ -239,6 +239,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
               const SizedBox(height: 24),
 
+              // Section Imams
+              const ImamsSection(),
+
+              const SizedBox(height: 24),
+
+              // Section Muezzins
+              const MuezzinsSection(),
+
+              const SizedBox(height: 24),
+
               // Événements à venir
               const UpcomingEventsSection(),
 
@@ -258,17 +268,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ],
       ),
 
-      // Bouton d'accès admin (seulement en mode debug)
-      floatingActionButton: kDebugMode
-          ? FloatingActionButton.extended(
-              onPressed: () => context.go('/admin'),
-              backgroundColor: Colors.deepPurple,
-              foregroundColor: Colors.white,
-              icon: const Icon(Icons.admin_panel_settings),
-              label: const Text('Admin'),
-              tooltip: 'Interface d\'administration',
-            )
-          : null,
+      // Bouton d'accès admin (toujours visible)
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.go('/admin/login'),
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.admin_panel_settings),
+        label: const Text('Admin'),
+        tooltip: 'Accès administration',
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }

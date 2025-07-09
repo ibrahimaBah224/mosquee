@@ -143,14 +143,11 @@ class DonationHistoryCard extends StatelessWidget {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 4),
-
                     Text(
                       '${dateFormatter.format(date)} à ${timeFormatter.format(date)}',
                       style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     ),
-
                     if (reference != null) ...[
                       const SizedBox(height: 2),
                       Text(
@@ -182,18 +179,18 @@ class DonationHistoryCard extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.euro, color: Colors.grey[600], size: 16),
+                      Icon(Icons.attach_money,
+                          color: Colors.grey[600], size: 16),
                       const SizedBox(width: 4),
                       Text(
                         NumberFormat.currency(
                           locale: 'fr_FR',
-                          symbol: '€',
-                          decimalDigits: 2,
+                          symbol: 'GNF',
+                          decimalDigits: 0,
                         ).format(amount),
                         style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).primaryColor,
+                          color: Colors.grey[600],
+                          fontSize: 13,
                         ),
                       ),
                     ],

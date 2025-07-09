@@ -259,15 +259,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 color: Theme.of(context).primaryColor,
               ),
             ),
-
             const SizedBox(height: 16),
-
             Row(
               children: [
                 Expanded(
                   child: _buildStatCard(
                     'Dons totaux',
-                    '485€',
+                    '4,850,000 GNF',
                     Icons.volunteer_activism,
                   ),
                 ),
@@ -277,9 +275,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ],
             ),
-
             const SizedBox(height: 12),
-
             Row(
               children: [
                 Expanded(
@@ -347,30 +343,25 @@ class _ProfilePageState extends State<ProfilePage> {
                 color: Theme.of(context).primaryColor,
               ),
             ),
-
             const SizedBox(height: 16),
-
             _buildActionTile(
               'Mes dons',
               'Voir l\'historique des donations',
               Icons.history,
               () => context.go('/profile/donation-history'),
             ),
-
             _buildActionTile(
               'Mes événements',
               'Événements auxquels je participe',
               Icons.event_available,
               () => context.go('/events'),
             ),
-
             _buildActionTile(
               'Paramètres',
               'Configurer l\'application',
               Icons.settings,
               () => context.go('/settings'),
             ),
-
             _buildActionTile(
               'Support',
               'Contacter l\'équipe',
@@ -408,31 +399,30 @@ class _ProfilePageState extends State<ProfilePage> {
   void _showSupportDialog() {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Support'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.email),
-                  title: const Text('Email'),
-                  subtitle: const Text('support@mosquee-alnour.fr'),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.phone),
-                  title: const Text('Téléphone'),
-                  subtitle: const Text('+33 1 23 45 67 89'),
-                ),
-              ],
+      builder: (context) => AlertDialog(
+        title: const Text('Support'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.email),
+              title: const Text('Email'),
+              subtitle: const Text('support@mosquee-alnour.fr'),
             ),
-            actions: [
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Fermer'),
-              ),
-            ],
+            ListTile(
+              leading: const Icon(Icons.phone),
+              title: const Text('Téléphone'),
+              subtitle: const Text('+33 1 23 45 67 89'),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fermer'),
           ),
+        ],
+      ),
     );
   }
 

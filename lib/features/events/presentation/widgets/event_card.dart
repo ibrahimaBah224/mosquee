@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/cloudinary_image.dart';
+import '../../../../core/services/cloudinary_service.dart';
 
 class EventCard extends StatelessWidget {
   final String title;
@@ -44,21 +46,20 @@ class EventCard extends StatelessWidget {
                   top: Radius.circular(12),
                 ),
               ),
-              child:
-                  imageUrl != null
-                      ? ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(12),
-                        ),
-                        child: Image.network(
-                          imageUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return _buildPlaceholder(context);
-                          },
-                        ),
-                      )
-                      : _buildPlaceholder(context),
+              child: imageUrl != null && imageUrl!.isNotEmpty
+                  ? CloudinaryImage(
+                      publicId: imageUrl!,
+                      width: double.infinity,
+                      height: 120,
+                      fit: BoxFit.cover,
+                      quality: CloudinaryImageQuality.medium,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(12),
+                      ),
+                      placeholder: _buildPlaceholder(context),
+                      errorWidget: _buildPlaceholder(context),
+                    )
+                  : _buildPlaceholder(context),
             ),
 
             Padding(
@@ -85,9 +86,9 @@ class EventCard extends StatelessWidget {
                           style: Theme.of(
                             context,
                           ).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).primaryColor,
-                            fontWeight: FontWeight.w600,
-                          ),
+                                color: Theme.of(context).primaryColor,
+                                fontWeight: FontWeight.w600,
+                              ),
                         ),
                       ),
                       const Spacer(),
@@ -106,9 +107,9 @@ class EventCard extends StatelessWidget {
                             style: Theme.of(
                               context,
                             ).textTheme.bodySmall?.copyWith(
-                              color: Colors.green,
-                              fontWeight: FontWeight.w600,
-                            ),
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.w600,
+                                ),
                           ),
                         ),
                     ],
@@ -120,8 +121,8 @@ class EventCard extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -182,10 +183,9 @@ class EventCard extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: isRegistered ? null : onRegister,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            isRegistered
-                                ? Colors.grey
-                                : Theme.of(context).primaryColor,
+                        backgroundColor: isRegistered
+                            ? Colors.grey
+                            : Theme.of(context).primaryColor,
                       ),
                       child: Text(
                         isRegistered ? 'Déjà inscrit' : 'S\'inscrire',

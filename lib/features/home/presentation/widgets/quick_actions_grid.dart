@@ -18,8 +18,11 @@ class _QuickActionsGridState extends State<QuickActionsGrid>
   void initState() {
     super.initState();
 
+    // Calculer le nombre maximum d'actions possibles
+    final maxActions = 7 + (kDebugMode ? 2 : 0); // 7 normales + 2 debug
+
     _controllers = List.generate(
-      6, // Augmenté pour inclure le bouton Firebase
+      maxActions,
       (index) => AnimationController(
         duration: Duration(milliseconds: 200 + (index * 100)),
         vsync: this,
@@ -93,6 +96,22 @@ class _QuickActionsGridState extends State<QuickActionsGrid>
         ),
         onTap: () => context.go('/qibla'),
       ),
+      _QuickAction(
+        icon: Icons.person,
+        label: 'Nos Imams',
+        gradient: LinearGradient(
+          colors: [Colors.purple.shade400, Colors.purple.shade600],
+        ),
+        onTap: () => context.go('/imams'),
+      ),
+      _QuickAction(
+        icon: Icons.record_voice_over,
+        label: 'Muezzins',
+        gradient: LinearGradient(
+          colors: [Colors.teal.shade400, Colors.teal.shade600],
+        ),
+        onTap: () => context.go('/muezzins'),
+      ),
       // Bouton Firebase pour les tests (seulement en debug)
       if (kDebugMode)
         _QuickAction(
@@ -102,6 +121,16 @@ class _QuickActionsGridState extends State<QuickActionsGrid>
             colors: [Colors.deepOrange.shade400, Colors.red.shade600],
           ),
           onTap: () => context.go('/admin/firebase-setup'),
+        ),
+      // Bouton Cloudinary pour l'admin (seulement en debug)
+      if (kDebugMode)
+        _QuickAction(
+          icon: Icons.cloud,
+          label: 'Cloudinary',
+          gradient: LinearGradient(
+            colors: [Colors.purple.shade400, Colors.deepPurple.shade600],
+          ),
+          onTap: () => context.go('/admin/cloudinary'),
         ),
     ];
 
@@ -118,11 +147,15 @@ class _QuickActionsGridState extends State<QuickActionsGrid>
         ),
         itemCount: quickActions.length,
         itemBuilder: (context, index) {
+          // Sécuriser l'accès aux animations
+          final animationIndex =
+              index < _animations.length ? index : _animations.length - 1;
+
           return AnimatedBuilder(
-            animation: _animations[index],
+            animation: _animations[animationIndex],
             builder: (context, child) {
               return Transform.scale(
-                scale: _animations[index].value,
+                scale: _animations[animationIndex].value,
                 child: _buildActionCard(quickActions[index]),
               );
             },

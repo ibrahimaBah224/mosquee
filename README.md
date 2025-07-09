@@ -1,4 +1,4 @@
-# 🕌 Mosquée Al-Nour - Application Mobile Complète
+# 🕌 MOMED - Application Mobile de la Mosquée Elhadj Daouda
 
 Une application Flutter moderne et complète pour la gestion d'une mosquée, développée avec une architecture Clean Architecture et des fonctionnalités avancées.
 

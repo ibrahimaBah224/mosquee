@@ -73,13 +73,33 @@ class AboutPage extends StatelessWidget {
               ),
             ],
           ),
-          child: const Icon(Icons.mosque, size: 50, color: Colors.white),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(25),
+            child: Image.asset(
+              'assets/images/logo.png',
+              width: 100,
+              height: 100,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                // Fallback vers l'icône mosquée si le logo ne charge pas
+                return const Icon(Icons.mosque, size: 50, color: Colors.white);
+              },
+            ),
+          ),
         ),
         const SizedBox(height: 20),
         Text(
-          'Mosquée Elhadj Daouda',
+          'MOMED',
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
+              ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Mosquée Elhadj Daouda',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
               ),
         ),
         const SizedBox(height: 8),
@@ -389,7 +409,7 @@ class AboutPage extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            '© 2024 Mosquée Elhadj Daouda',
+            '© 2024 MOMED',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[600],

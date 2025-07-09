@@ -1,5 +1,5 @@
 class AppConfig {
-  static const String appName = 'Mosquée Elhadj Daouda';
+  static const String appName = 'MOMED';
   static const String appVersion = '1.0.0';
   static const String appDescription =
       'Application mobile pour la communauté musulmane';
@@ -83,4 +83,16 @@ class AppConfig {
   static const int prayerTimesCacheDuration = 24;
   static const int eventsCacheDuration = 6;
   static const int newsCacheDuration = 12;
+
+  // Cloudinary Configuration
+  static const String cloudinaryCloudName = 'ddbhp3vpj';
+  static const String cloudinaryApiKey = '947988289152758';
+  static const String cloudinaryApiSecret = 'YpMAH-NKCXIbLqTEh3qztA4s5JU';
+  static const bool cloudinaryEnabled = true;
+
+  // Image Configuration
+  static const int defaultImageWidth = 800;
+  static const int defaultImageHeight = 600;
+  static const int thumbnailSize = 150;
+  static const String defaultImageFormat = 'webp';
 }

@@ -38,9 +38,9 @@ class SettingsPage extends StatelessWidget {
                   Icons.language,
                   state.language,
                   {'fr': 'Français', 'ar': 'العربية', 'en': 'English'},
-                  (language) => context.read<SettingsBloc>().add(
-                        ChangeLanguage(language: language!),
-                      ),
+                  (language) => context
+                      .read<SettingsBloc>()
+                      .add(ChangeLanguage(language: language!)),
                 ),
               ]),
 
@@ -370,17 +370,13 @@ class SettingsPage extends StatelessWidget {
   void _showAboutDialog(BuildContext context) {
     showAboutDialog(
       context: context,
-      applicationName: 'Mosquée Elhadj Daouda',
+      applicationName: 'MOMED',
       applicationVersion: '1.0.0',
-      applicationIcon: const Icon(
-        Icons.mosque,
-        size: 48,
-        color: Color(0xFF2E7D32),
-      ),
+      applicationIcon: const Icon(Icons.mosque),
       children: [
+        const Text('© 2024 MOMED'),
+        const SizedBox(height: 8),
         const Text('Application mobile pour la mosquée Elhadj Daouda.'),
-        const SizedBox(height: 16),
-        const Text('Développé avec ❤️ pour la communauté musulmane.'),
       ],
     );
   }

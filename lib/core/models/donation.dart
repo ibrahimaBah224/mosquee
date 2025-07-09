@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum DonationType { zakat, sadaqah, masjid, education, charity, emergency }
 
@@ -33,7 +34,7 @@ class Donation extends Equatable {
     this.donorEmail,
     this.donorPhone,
     required this.amount,
-    this.currency = 'EUR',
+    this.currency = 'GNF',
     required this.type,
     this.status = DonationStatus.pending,
     required this.paymentMethod,
@@ -55,7 +56,7 @@ class Donation extends Equatable {
       donorEmail: data['donorEmail'],
       donorPhone: data['donorPhone'],
       amount: (data['amount'] ?? 0.0).toDouble(),
-      currency: data['currency'] ?? 'EUR',
+      currency: data['currency'] ?? 'GNF',
       type: DonationType.values.firstWhere(
         (e) => e.name == data['type'],
         orElse: () => DonationType.sadaqah,
@@ -191,7 +192,7 @@ class DonationCampaign extends Equatable {
     this.imageUrl,
     required this.targetAmount,
     this.currentAmount = 0.0,
-    this.currency = 'EUR',
+    this.currency = 'GNF',
     required this.type,
     required this.startDate,
     required this.endDate,
@@ -209,7 +210,7 @@ class DonationCampaign extends Equatable {
       imageUrl: data['imageUrl'],
       targetAmount: (data['targetAmount'] ?? 0.0).toDouble(),
       currentAmount: (data['currentAmount'] ?? 0.0).toDouble(),
-      currency: data['currency'] ?? 'EUR',
+      currency: data['currency'] ?? 'GNF',
       type: DonationType.values.firstWhere(
         (e) => e.name == data['type'],
         orElse: () => DonationType.charity,

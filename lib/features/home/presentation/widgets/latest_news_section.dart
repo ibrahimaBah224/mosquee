@@ -110,9 +110,10 @@ class LatestNewsSection extends StatelessWidget {
                             style: Theme.of(
                               context,
                             ).textTheme.bodySmall?.copyWith(
-                              color: _getCategoryColor(article['category']!),
-                              fontWeight: FontWeight.w600,
-                            ),
+                                  color:
+                                      _getCategoryColor(article['category']!),
+                                  fontWeight: FontWeight.w600,
+                                ),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -126,8 +127,8 @@ class LatestNewsSection extends StatelessWidget {
                     Text(
                       article['title']!,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                            fontWeight: FontWeight.w600,
+                          ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),

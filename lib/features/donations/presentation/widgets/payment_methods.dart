@@ -10,178 +10,147 @@ class PaymentMethods extends StatelessWidget {
     required this.onMethodSelected,
   });
 
-  static const List<Map<String, dynamic>> paymentMethods = [
+  // Méthodes de paiement par défaut - configurables via l'interface admin
+  static const List<Map<String, dynamic>> defaultPaymentMethods = [
     {
       'id': 'card',
-      'name': 'Carte Bancaire',
+      'name': 'Carte bancaire',
+      'description': 'Visa, Mastercard, American Express',
       'icon': Icons.credit_card,
-      'description': 'Visa, Mastercard, Amex',
       'color': Colors.blue,
+      'enabled': true,
     },
     {
       'id': 'paypal',
       'name': 'PayPal',
+      'description': 'Paiement sécurisé avec PayPal',
       'icon': Icons.payment,
-      'description': 'Paiement sécurisé',
       'color': Colors.indigo,
-    },
-    {
-      'id': 'apple_pay',
-      'name': 'Apple Pay',
-      'icon': Icons.phone_iphone,
-      'description': 'Touch ID / Face ID',
-      'color': Colors.black,
-    },
-    {
-      'id': 'google_pay',
-      'name': 'Google Pay',
-      'icon': Icons.android,
-      'description': 'Paiement rapide',
-      'color': Colors.green,
+      'enabled': true,
     },
     {
       'id': 'bank_transfer',
-      'name': 'Virement Bancaire',
+      'name': 'Virement bancaire',
+      'description': 'Virement direct sur compte bancaire',
       'icon': Icons.account_balance,
-      'description': 'Transfer direct',
+      'color': Colors.green,
+      'enabled': true,
+    },
+    {
+      'id': 'mobile_money',
+      'name': 'Mobile Money',
+      'description': 'Orange Money, MTN Money',
+      'icon': Icons.phone_android,
       'color': Colors.orange,
+      'enabled': true,
+    },
+    {
+      'id': 'cash',
+      'name': 'Espèces',
+      'description': 'Don en espèces à la mosquée',
+      'icon': Icons.payments,
+      'color': Colors.brown,
+      'enabled': true,
+    },
+    {
+      'id': 'check',
+      'name': 'Chèque',
+      'description': 'Chèque à l\'ordre de la mosquée',
+      'icon': Icons.receipt_long,
+      'color': Colors.purple,
+      'enabled': false, // Désactivé par défaut
     },
   ];
 
   @override
   Widget build(BuildContext context) {
+    // Filtrer les méthodes activées
+    final enabledMethods = defaultPaymentMethods
+        .where((method) => method['enabled'] == true)
+        .toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Méthode de paiement',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).primaryColor,
-          ),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
         ),
-
         const SizedBox(height: 16),
-
         ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: paymentMethods.length,
+          itemCount: enabledMethods.length,
           itemBuilder: (context, index) {
-            final method = paymentMethods[index];
+            final method = enabledMethods[index];
             final isSelected = selectedMethod == method['id'];
 
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => onMethodSelected(method['id']),
-                  borderRadius: BorderRadius.circular(12),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color:
-                          isSelected
-                              ? method['color'].withOpacity(0.1)
-                              : Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected ? method['color'] : Colors.grey[300]!,
-                        width: isSelected ? 2 : 1,
+              child: GestureDetector(
+                onTap: () => onMethodSelected(method['id']),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? method['color'].withOpacity(0.1)
+                        : Colors.grey[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? method['color'] : Colors.grey[300]!,
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: method['color'].withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          method['icon'],
+                          color: method['color'],
+                          size: 24,
+                        ),
                       ),
-                      boxShadow: [
-                        if (isSelected)
-                          BoxShadow(
-                            color: method['color'].withOpacity(0.2),
-                            blurRadius: 8,
-                            spreadRadius: 0,
-                            offset: const Offset(0, 2),
-                          ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        // Payment Icon
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color:
-                                isSelected
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              method['name'],
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: isSelected
                                     ? method['color']
-                                    : method['color'].withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            method['icon'],
-                            color: isSelected ? Colors.white : method['color'],
-                            size: 24,
-                          ),
-                        ),
-
-                        const SizedBox(width: 16),
-
-                        // Method Details
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                method['name'],
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color:
-                                      isSelected
-                                          ? method['color']
-                                          : Colors.black87,
-                                ),
+                                    : Colors.grey[800],
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                method['description'],
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Selection Indicator
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color:
-                                isSelected
-                                    ? method['color']
-                                    : Colors.transparent,
-                            border: Border.all(
-                              color:
-                                  isSelected
-                                      ? method['color']
-                                      : Colors.grey[400]!,
-                              width: 2,
                             ),
-                          ),
-                          child:
-                              isSelected
-                                  ? const Icon(
-                                    Icons.check,
-                                    color: Colors.white,
-                                    size: 16,
-                                  )
-                                  : null,
+                            const SizedBox(height: 2),
+                            Text(
+                              method['description'],
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                      if (isSelected)
+                        Icon(
+                          Icons.check_circle,
+                          color: method['color'],
+                          size: 24,
+                        ),
+                    ],
                   ),
                 ),
               ),
@@ -189,24 +158,39 @@ class PaymentMethods extends StatelessWidget {
           },
         ),
 
-        const SizedBox(height: 16),
-
-        // Security Info
+        // Note informative
         Container(
+          margin: const EdgeInsets.only(top: 16),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.green.withOpacity(0.1),
+            color: Colors.blue.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.green.withOpacity(0.3)),
+            border: Border.all(color: Colors.blue.withOpacity(0.3)),
           ),
           child: Row(
             children: [
-              Icon(Icons.security, color: Colors.green[700], size: 20),
+              Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  'Tous les paiements sont sécurisés et cryptés. Vos données bancaires ne sont jamais stockées.',
-                  style: TextStyle(fontSize: 12, color: Colors.green[700]),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Sécurité garantie',
+                      style: TextStyle(
+                        color: Colors.blue[700],
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
+                    Text(
+                      'Tous les paiements sont sécurisés et chiffrés.',
+                      style: TextStyle(
+                        color: Colors.blue[600],
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -214,5 +198,41 @@ class PaymentMethods extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  /// Méthode utilitaire pour obtenir le nom d'affichage d'une méthode
+  static String getMethodDisplayName(String methodId) {
+    final method = defaultPaymentMethods.firstWhere(
+      (m) => m['id'] == methodId,
+      orElse: () => {'name': methodId},
+    );
+    return method['name'];
+  }
+
+  /// Méthode utilitaire pour obtenir l'icône d'une méthode
+  static IconData getMethodIcon(String methodId) {
+    final method = defaultPaymentMethods.firstWhere(
+      (m) => m['id'] == methodId,
+      orElse: () => {'icon': Icons.payment},
+    );
+    return method['icon'];
+  }
+
+  /// Méthode utilitaire pour obtenir la couleur d'une méthode
+  static Color getMethodColor(String methodId) {
+    final method = defaultPaymentMethods.firstWhere(
+      (m) => m['id'] == methodId,
+      orElse: () => {'color': Colors.grey},
+    );
+    return method['color'];
+  }
+
+  /// Vérifier si une méthode est activée
+  static bool isMethodEnabled(String methodId) {
+    final method = defaultPaymentMethods.firstWhere(
+      (m) => m['id'] == methodId,
+      orElse: () => {'enabled': false},
+    );
+    return method['enabled'] ?? false;
   }
 }

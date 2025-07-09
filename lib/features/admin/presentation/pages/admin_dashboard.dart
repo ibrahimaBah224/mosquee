@@ -4,245 +4,351 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/models/user_profile.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../../core/services/admin_auth_service.dart';
+import '../../../../core/services/firestore_service.dart';
+import '../../../../core/di/dependency_injection.dart';
 
-class AdminDashboard extends StatelessWidget {
+class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        // En mode debug, autoriser l'accès admin sans authentification
-        if (!kDebugMode && state is! AuthAuthenticated) {
-          return const Scaffold(
-            body: Center(
-              child: Text('Accès non autorisé'),
-            ),
-          );
-        }
+  State<AdminDashboard> createState() => _AdminDashboardState();
+}
 
-        // Vérifier si l'utilisateur est admin (à implémenter avec le profil)
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Administration'),
-            backgroundColor: Colors.deepPurple,
-            foregroundColor: Colors.white,
-            actions: [
-              if (kDebugMode)
-                Container(
-                  margin: const EdgeInsets.all(8),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.orange,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text(
-                    'DEBUG',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              IconButton(
-                icon: const Icon(Icons.settings),
-                onPressed: () {
-                  // Configuration globale
-                },
-              ),
+class _AdminDashboardState extends State<AdminDashboard> {
+  bool _isCheckingAuth = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthentication();
+  }
+
+  Future<void> _checkAuthentication() async {
+    // En mode debug, autoriser l'accès admin sans authentification
+    if (kDebugMode) {
+      setState(() {
+        _isCheckingAuth = false;
+      });
+      return;
+    }
+
+    // Vérifier si l'utilisateur est connecté
+    final isLoggedIn = await AdminAuthService.instance.isLoggedIn();
+
+    if (!isLoggedIn && mounted) {
+      context.go('/admin/login');
+      return;
+    }
+
+    setState(() {
+      _isCheckingAuth = false;
+    });
+  }
+
+  Future<void> _logout() async {
+    await AdminAuthService.instance.logout();
+    if (mounted) {
+      context.go('/');
+    }
+  }
+
+  Future<void> _fixExistingEvents() async {
+    // Afficher une confirmation
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Corriger les événements'),
+        content: const Text(
+            'Cette action va ajouter le champ "status" manquant aux événements existants. '
+            'Voulez-vous continuer ?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Corriger'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      // Afficher un indicateur de chargement
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Text('Correction en cours...'),
             ],
           ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+      );
+
+      // Exécuter la correction
+      final firestoreService = getIt<FirestoreService>();
+      await firestoreService.fixExistingEventsStatus();
+
+      // Fermer l'indicateur de chargement
+      if (mounted) Navigator.of(context).pop();
+
+      // Afficher le succès
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Événements corrigés avec succès !'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      // Fermer l'indicateur de chargement
+      if (mounted) Navigator.of(context).pop();
+
+      // Afficher l'erreur
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Erreur: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isCheckingAuth) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Administration'),
+        backgroundColor: Theme.of(context).primaryColor,
+        foregroundColor: Colors.white,
+        actions: [
+          // Bouton de déconnexion (seulement en production)
+          if (!kDebugMode)
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Déconnexion'),
+                    content:
+                        const Text('Voulez-vous vraiment vous déconnecter ?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Annuler'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _logout();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('Déconnexion'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              tooltip: 'Déconnexion',
+            ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Statistics Cards
+            Row(
               children: [
-                // Statistics Cards
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildStatCard(
-                        title: 'Utilisateurs',
-                        value: '150',
-                        icon: Icons.people,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildStatCard(
-                        title: 'Événements',
-                        value: '25',
-                        icon: Icons.event,
-                        color: Colors.green,
-                      ),
-                    ),
-                  ],
+                Expanded(
+                  child: _buildStatCard(
+                    title: 'Utilisateurs',
+                    value: '150',
+                    icon: Icons.people,
+                    color: Colors.blue,
+                  ),
                 ),
-
-                const SizedBox(height: 16),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildStatCard(
-                        title: 'Actualités',
-                        value: '42',
-                        icon: Icons.article,
-                        color: Colors.orange,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildStatCard(
-                        title: 'Livres',
-                        value: '89',
-                        icon: Icons.book,
-                        color: Colors.purple,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 32),
-
-                // Management Sections
-                Text(
-                  'Gestion du contenu',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-
-                const SizedBox(height: 16),
-
-                GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  children: [
-                    _buildManagementCard(
-                      context,
-                      title: 'Heures de Prière',
-                      subtitle: 'Configurer les horaires',
-                      icon: Icons.access_time,
-                      color: Colors.teal,
-                      onTap: () => context.go('/admin/prayers'),
-                    ),
-                    _buildManagementCard(
-                      context,
-                      title: 'Événements',
-                      subtitle: 'Gérer les événements',
-                      icon: Icons.event,
-                      color: Colors.green,
-                      onTap: () => context.go('/admin/events'),
-                    ),
-                    _buildManagementCard(
-                      context,
-                      title: 'Actualités',
-                      subtitle: 'Publier des actualités',
-                      icon: Icons.article,
-                      color: Colors.orange,
-                      onTap: () => context.go('/admin/news'),
-                    ),
-                    _buildManagementCard(
-                      context,
-                      title: 'Bibliothèque',
-                      subtitle: 'Gérer les livres',
-                      icon: Icons.library_books,
-                      color: Colors.purple,
-                      onTap: () => context.go('/admin/books'),
-                    ),
-                    _buildManagementCard(
-                      context,
-                      title: 'Dons',
-                      subtitle: 'Campagnes de dons',
-                      icon: Icons.monetization_on,
-                      color: Colors.amber,
-                      onTap: () => context.go('/admin/donations'),
-                    ),
-                    _buildManagementCard(
-                      context,
-                      title: 'Utilisateurs',
-                      subtitle: 'Gérer les utilisateurs',
-                      icon: Icons.people,
-                      color: Colors.blue,
-                      onTap: () => context.go('/admin/users'),
-                    ),
-                    _buildManagementCard(
-                      context,
-                      title: 'Mosquée',
-                      subtitle: 'Configuration générale',
-                      icon: Icons.mosque,
-                      color: Colors.indigo,
-                      onTap: () => context.go('/admin/mosque-settings'),
-                    ),
-                    _buildActionCard(
-                      context,
-                      'Imams',
-                      'Gérer les Imams et leur hiérarchie',
-                      Icons.people,
-                      Colors.teal,
-                      () => context.go('/admin/imams'),
-                    ),
-                    _buildActionCard(
-                      context,
-                      'Muezzins',
-                      'Gérer les Muezzins et leurs horaires',
-                      Icons.record_voice_over,
-                      Colors.indigo,
-                      () => context.go('/admin/muezzins'),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 32),
-
-                // Quick Actions
-                Text(
-                  'Actions rapides',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-
-                const SizedBox(height: 16),
-
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _buildQuickActionChip(
-                      context,
-                      label: 'Nouveau Événement',
-                      icon: Icons.add_circle,
-                      onTap: () => context.go('/admin/events/create'),
-                    ),
-                    _buildQuickActionChip(
-                      context,
-                      label: 'Nouvelle Actualité',
-                      icon: Icons.add_circle,
-                      onTap: () => context.go('/admin/news/create'),
-                    ),
-                    _buildQuickActionChip(
-                      context,
-                      label: 'Ajouter Livre',
-                      icon: Icons.add_circle,
-                      onTap: () => context.go('/admin/books/create'),
-                    ),
-                    _buildQuickActionChip(
-                      context,
-                      label: 'Campagne Don',
-                      icon: Icons.add_circle,
-                      onTap: () => context.go('/admin/donations/create'),
-                    ),
-                  ],
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildStatCard(
+                    title: 'Événements',
+                    value: '25',
+                    icon: Icons.event,
+                    color: Colors.green,
+                  ),
                 ),
               ],
             ),
-          ),
-        );
-      },
+
+            const SizedBox(height: 16),
+
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatCard(
+                    title: 'Dons',
+                    value: '42',
+                    icon: Icons.monetization_on,
+                    color: Colors.orange,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildStatCard(
+                    title: 'Utilisateurs Actifs',
+                    value: '89',
+                    icon: Icons.people_alt,
+                    color: Colors.purple,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 32),
+
+            // Management Sections
+            Text(
+              'Gestion du contenu',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+
+            const SizedBox(height: 16),
+
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              children: [
+                _buildManagementCard(
+                  context,
+                  title: 'Événements',
+                  subtitle: 'Gérer les événements',
+                  icon: Icons.event,
+                  color: Colors.green,
+                  onTap: () => context.go('/admin/events'),
+                ),
+                _buildManagementCard(
+                  context,
+                  title: 'Dons',
+                  subtitle: 'Campagnes de dons',
+                  icon: Icons.monetization_on,
+                  color: Colors.amber,
+                  onTap: () => context.go('/admin/donations'),
+                ),
+                _buildManagementCard(
+                  context,
+                  title: 'Utilisateurs',
+                  subtitle: 'Gérer les utilisateurs',
+                  icon: Icons.people,
+                  color: Colors.blue,
+                  onTap: () => context.go('/admin/users'),
+                ),
+                _buildManagementCard(
+                  context,
+                  title: 'Mosquée',
+                  subtitle: 'Configuration générale',
+                  icon: Icons.mosque,
+                  color: Colors.indigo,
+                  onTap: () => context.go('/admin/mosque-settings'),
+                ),
+                _buildActionCard(
+                  context,
+                  'Imams',
+                  'Gérer les Imams et leur hiérarchie',
+                  Icons.people,
+                  Colors.teal,
+                  () => context.go('/admin/imams'),
+                ),
+                _buildActionCard(
+                  context,
+                  'Muezzins',
+                  'Gérer les Muezzins et leurs horaires',
+                  Icons.record_voice_over,
+                  Colors.indigo,
+                  () => context.go('/admin/muezzins'),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 32),
+
+            // Quick Actions
+            Text(
+              'Actions rapides',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+
+            const SizedBox(height: 16),
+
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _buildQuickActionChip(
+                  context,
+                  label: 'Nouveau Événement',
+                  icon: Icons.add_circle,
+                  onTap: () => context.go('/admin/events/create'),
+                ),
+                _buildQuickActionChip(
+                  context,
+                  label: 'Campagne Don',
+                  icon: Icons.add_circle,
+                  onTap: () => context.go('/admin/donations/create'),
+                ),
+                _buildQuickActionChip(
+                  context,
+                  label: 'Corriger Événements',
+                  icon: Icons.build_circle,
+                  onTap: _fixExistingEvents,
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // Actions rapides
+            _buildQuickActionsSection(context),
+
+            const SizedBox(height: 20),
+
+            // Gestion des paramètres (seulement en production)
+            if (!kDebugMode) _buildAdminSettingsSection(context),
+
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
     );
   }
 
@@ -391,6 +497,275 @@ class AdminDashboard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildQuickActionsSection(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Actions Rapides',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => context.go('/admin/events/create'),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(Icons.event_note, color: Colors.blue, size: 32),
+                          const SizedBox(height: 8),
+                          Text('Nouvel Événement', textAlign: TextAlign.center),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => context.go('/admin/donations/create'),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border:
+                            Border.all(color: Colors.amber.withOpacity(0.3)),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(Icons.monetization_on,
+                              color: Colors.amber, size: 32),
+                          const SizedBox(height: 8),
+                          Text('Nouvelle Campagne Don',
+                              textAlign: TextAlign.center),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdminSettingsSection(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Paramètres Admin',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.lock, color: Colors.orange),
+              ),
+              title: const Text('Changer le mot de passe'),
+              subtitle:
+                  const Text('Modifier le mot de passe d\'administration'),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () => _showChangePasswordDialog(context),
+            ),
+            const Divider(),
+            ListTile(
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.restore, color: Colors.red),
+              ),
+              title: const Text('Réinitialiser le mot de passe'),
+              subtitle: const Text('Remettre le mot de passe par défaut'),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () => _showResetPasswordDialog(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showChangePasswordDialog(BuildContext context) {
+    final currentPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+    bool isObscuredCurrent = true;
+    bool isObscuredNew = true;
+    bool isObscuredConfirm = true;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Changer le mot de passe'),
+          content: SizedBox(
+            width: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: currentPasswordController,
+                  obscureText: isObscuredCurrent,
+                  decoration: InputDecoration(
+                    labelText: 'Mot de passe actuel',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(isObscuredCurrent
+                          ? Icons.visibility
+                          : Icons.visibility_off),
+                      onPressed: () => setState(
+                          () => isObscuredCurrent = !isObscuredCurrent),
+                    ),
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: newPasswordController,
+                  obscureText: isObscuredNew,
+                  decoration: InputDecoration(
+                    labelText: 'Nouveau mot de passe',
+                    prefixIcon: const Icon(Icons.lock),
+                    suffixIcon: IconButton(
+                      icon: Icon(isObscuredNew
+                          ? Icons.visibility
+                          : Icons.visibility_off),
+                      onPressed: () =>
+                          setState(() => isObscuredNew = !isObscuredNew),
+                    ),
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: confirmPasswordController,
+                  obscureText: isObscuredConfirm,
+                  decoration: InputDecoration(
+                    labelText: 'Confirmer le nouveau mot de passe',
+                    prefixIcon: const Icon(Icons.lock),
+                    suffixIcon: IconButton(
+                      icon: Icon(isObscuredConfirm
+                          ? Icons.visibility
+                          : Icons.visibility_off),
+                      onPressed: () => setState(
+                          () => isObscuredConfirm = !isObscuredConfirm),
+                    ),
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (newPasswordController.text !=
+                    confirmPasswordController.text) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content:
+                            Text('Les mots de passe ne correspondent pas')),
+                  );
+                  return;
+                }
+
+                final currentPassword =
+                    await AdminAuthService.instance.getCurrentPassword();
+                if (currentPasswordController.text != currentPassword) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Mot de passe actuel incorrect')),
+                  );
+                  return;
+                }
+
+                await AdminAuthService.instance
+                    .changePassword(newPasswordController.text);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Mot de passe modifié avec succès')),
+                );
+              },
+              child: const Text('Modifier'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showResetPasswordDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Réinitialiser le mot de passe'),
+        content: const Text(
+          'Êtes-vous sûr de vouloir remettre le mot de passe par défaut ?\n\nNouveau mot de passe : MOMED2024',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await AdminAuthService.instance.resetPassword();
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text('Mot de passe réinitialisé à MOMED2024')),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Réinitialiser'),
+          ),
+        ],
       ),
     );
   }

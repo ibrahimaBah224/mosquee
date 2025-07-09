@@ -1,5 +1,5 @@
 name: mosquee
-description: "Application mobile de la Mosquée Al-Nour"
+description: "MOMED - Application mobile de la Mosquée Elhadj Daouda"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -52,6 +52,7 @@ dependencies:
   dio: ^5.4.0
   retrofit: ^4.4.1
   json_annotation: ^4.8.1
+  http: ^1.1.0
   
   # Storage
   shared_preferences: ^2.2.2

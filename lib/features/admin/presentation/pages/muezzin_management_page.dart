@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/models/muezzin.dart';
 import '../../../../core/services/muezzin_service.dart';
+import '../../../../core/widgets/cloudinary_image.dart';
 
 class MuezzinManagementPage extends StatefulWidget {
   const MuezzinManagementPage({super.key});
@@ -293,16 +294,11 @@ class _MuezzinManagementPageState extends State<MuezzinManagementPage> {
             Row(
               children: [
                 // Avatar
-                CircleAvatar(
+                CloudinaryAvatar(
+                  publicId: muezzin.photoUrl ?? '',
                   radius: 30,
                   backgroundColor: _getStatusColor(muezzin.status),
-                  backgroundImage: muezzin.photoUrl?.isNotEmpty == true
-                      ? NetworkImage(muezzin.photoUrl!)
-                      : null,
-                  child: muezzin.photoUrl?.isEmpty != false
-                      ? const Icon(Icons.record_voice_over,
-                          color: Colors.white, size: 30)
-                      : null,
+                  fallbackIcon: Icons.record_voice_over,
                 ),
                 const SizedBox(width: 16),
 
@@ -585,6 +581,7 @@ class _AddEditMuezzinDialogState extends State<_AddEditMuezzinDialog> {
   bool _isVolunteer = true;
   bool _canReadArabic = true;
   bool _isLoading = false;
+  String? _photoUrl; // Ajout du champ photo
 
   @override
   void initState() {
@@ -608,6 +605,7 @@ class _AddEditMuezzinDialogState extends State<_AddEditMuezzinDialog> {
       _selectedPrayers = List.from(widget.muezzin!.assignedPrayers);
       _isVolunteer = widget.muezzin!.isVolunteer;
       _canReadArabic = widget.muezzin!.canReadArabic;
+      _photoUrl = widget.muezzin!.photoUrl; // Initialiser la photo existante
     }
   }
 
@@ -668,6 +666,20 @@ class _AddEditMuezzinDialogState extends State<_AddEditMuezzinDialog> {
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
+                      // Photo de profil
+                      Center(
+                        child: ProfileImageUploader(
+                          initialImageUrl: _photoUrl,
+                          onImageUploaded: (publicId) {
+                            setState(() {
+                              _photoUrl = publicId;
+                            });
+                          },
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
                       Row(
                         children: [
                           Expanded(
@@ -968,6 +980,7 @@ class _AddEditMuezzinDialogState extends State<_AddEditMuezzinDialog> {
         email: _emailController.text.trim().isNotEmpty
             ? _emailController.text.trim()
             : null,
+        photoUrl: _photoUrl, // Ajout de l'URL de la photo
         voiceQuality: _voiceQualityController.text.trim().isNotEmpty
             ? _voiceQualityController.text.trim()
             : null,

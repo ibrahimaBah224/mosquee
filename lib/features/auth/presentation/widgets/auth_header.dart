@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AuthHeader extends StatelessWidget {
   const AuthHeader({super.key});
@@ -31,11 +32,28 @@ class AuthHeader extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         Text(
-          'Mosquée Elhadj Daouda',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: Theme.of(context).primaryColor,
-                fontWeight: FontWeight.bold,
+          'MOMED',
+          style: GoogleFonts.poppins(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            shadows: [
+              Shadow(
+                color: Colors.black.withOpacity(0.3),
+                offset: const Offset(0, 2),
+                blurRadius: 4,
               ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Mosquée Elhadj Daouda',
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            color: Colors.white.withOpacity(0.9),
+          ),
         ),
         const SizedBox(height: 8),
         Text(

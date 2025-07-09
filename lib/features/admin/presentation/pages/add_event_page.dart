@@ -364,18 +364,12 @@ class _AddEventPageState extends State<AddEventPage> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _priceController,
-                      decoration: const InputDecoration(
-                        labelText: 'Prix (€)',
-                        hintText: '0.00',
-                        prefixIcon: Icon(Icons.euro),
-                      ),
                       keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (!_isFree && (value == null || value.isEmpty)) {
-                          return 'Le prix est obligatoire';
-                        }
-                        return null;
-                      },
+                      decoration: InputDecoration(
+                        labelText: 'Prix (GNF)',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.attach_money),
+                      ),
                     ),
                   ],
                 ],

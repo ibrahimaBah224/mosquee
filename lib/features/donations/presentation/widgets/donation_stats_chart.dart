@@ -24,7 +24,7 @@ class DonationStatsChart extends StatelessWidget {
             _buildStatRow(
               context,
               'Ce mois',
-              '2,450€',
+              '1,875,000 GNF',
               Colors.green,
               Icons.trending_up,
             ),
@@ -34,7 +34,7 @@ class DonationStatsChart extends StatelessWidget {
             _buildStatRow(
               context,
               'Total cette année',
-              '18,750€',
+              '18,750,000 GNF',
               Theme.of(context).primaryColor,
               Icons.pie_chart,
             ),
@@ -88,9 +88,7 @@ class DonationStatsChart extends StatelessWidget {
           ),
           child: Icon(icon, color: color, size: 20),
         ),
-
         const SizedBox(width: 12),
-
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

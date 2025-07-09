@@ -9,22 +9,25 @@ import '../../features/prayer/presentation/pages/prayer_times_page.dart';
 import '../../features/prayer/presentation/pages/qibla_compass_page.dart';
 import '../../features/donations/presentation/pages/donations_page.dart';
 import '../../features/events/presentation/pages/events_page.dart';
-import '../../features/news/presentation/pages/news_page.dart';
-import '../../features/library/presentation/pages/library_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/settings/presentation/pages/about_page.dart';
+import '../../features/staff/presentation/pages/imams_page.dart';
+import '../../features/staff/presentation/pages/muezzins_page.dart';
 
 // Admin Pages
 import '../../features/admin/presentation/pages/admin_dashboard.dart';
+import '../../features/admin/presentation/pages/admin_login_page.dart';
 import '../../features/admin/presentation/pages/prayer_management_page.dart';
 import '../../features/admin/presentation/pages/event_management_page.dart';
 import '../../features/admin/presentation/pages/firebase_setup_page.dart';
 import '../../features/admin/presentation/pages/mosque_settings_page.dart';
 import '../../features/admin/presentation/pages/imam_management_page.dart';
 import '../../features/admin/presentation/pages/muezzin_management_page.dart';
-import '../../features/admin/presentation/pages/news_management_page.dart';
 import '../../features/admin/presentation/pages/add_event_page.dart';
+import '../../features/admin/presentation/pages/cloudinary_settings_page.dart';
+import '../../features/admin/presentation/pages/user_management_page.dart';
+import '../../features/admin/presentation/pages/donation_management_page.dart';
 
 // Shell Navigation
 import '../widgets/main_scaffold.dart';
@@ -47,6 +50,11 @@ class AppRouter {
       ),
 
       // Admin Routes (without shell navigation)
+      GoRoute(
+        path: '/admin/login',
+        name: 'adminLogin',
+        builder: (context, state) => const AdminLoginPage(),
+      ),
       GoRoute(
         path: '/admin',
         name: 'admin',
@@ -82,55 +90,25 @@ class AppRouter {
         name: 'adminMuezzins',
         builder: (context, state) => const MuezzinManagementPage(),
       ),
-
-      // Routes pour l'ajout de contenu
       GoRoute(
         path: '/admin/events/create',
         name: 'addEvent',
         builder: (context, state) => const AddEventPage(),
       ),
-
-      // Routes temporaires pour les pages non créées
-      GoRoute(
-        path: '/admin/news',
-        name: 'adminNews',
-        builder: (context, state) => const NewsManagementPage(),
-      ),
-
-      GoRoute(
-        path: '/admin/news/create',
-        name: 'addNews',
-        builder: (context, state) => const TempAddNewsPage(),
-      ),
-
-      GoRoute(
-        path: '/admin/books',
-        name: 'adminBooks',
-        builder: (context, state) => const TempBookManagementPage(),
-      ),
-
-      GoRoute(
-        path: '/admin/books/create',
-        name: 'addBook',
-        builder: (context, state) => const TempAddBookPage(),
-      ),
-
       GoRoute(
         path: '/admin/donations',
         name: 'adminDonations',
-        builder: (context, state) => const TempDonationManagementPage(),
+        builder: (context, state) => const DonationManagementPage(),
       ),
-
-      GoRoute(
-        path: '/admin/donations/create',
-        name: 'addDonationCampaign',
-        builder: (context, state) => const TempAddDonationPage(),
-      ),
-
       GoRoute(
         path: '/admin/users',
         name: 'adminUsers',
-        builder: (context, state) => const TempUserManagementPage(),
+        builder: (context, state) => const UserManagementPage(),
+      ),
+      GoRoute(
+        path: '/admin/cloudinary',
+        name: 'cloudinarySettings',
+        builder: (context, state) => const CloudinarySettingsPage(),
       ),
 
       // Main Shell avec Bottom Navigation
@@ -172,48 +150,6 @@ class AppRouter {
                   final eventId = state.pathParameters['eventId']!;
                   return EventDetailPage(eventId: eventId);
                 },
-              ),
-            ],
-          ),
-
-          // News
-          GoRoute(
-            path: '/news',
-            name: 'news',
-            builder: (context, state) => const NewsPage(),
-            routes: [
-              // News Article Detail
-              GoRoute(
-                path: 'article/:articleId',
-                name: 'newsDetail',
-                builder: (context, state) {
-                  final articleId = state.pathParameters['articleId']!;
-                  return NewsDetailPage(articleId: articleId);
-                },
-              ),
-            ],
-          ),
-
-          // Library
-          GoRoute(
-            path: '/library',
-            name: 'library',
-            builder: (context, state) => const LibraryPage(),
-            routes: [
-              // Book Detail
-              GoRoute(
-                path: 'book/:bookId',
-                name: 'bookDetail',
-                builder: (context, state) {
-                  final bookId = state.pathParameters['bookId']!;
-                  return BookDetailPage(bookId: bookId);
-                },
-              ),
-              // Audio Books
-              GoRoute(
-                path: 'audio',
-                name: 'audioBooks',
-                builder: (context, state) => const AudioBooksPage(),
               ),
             ],
           ),
@@ -270,6 +206,20 @@ class AppRouter {
                 builder: (context, state) => const AboutPage(),
               ),
             ],
+          ),
+
+          // Imams
+          GoRoute(
+            path: '/imams',
+            name: 'imams',
+            builder: (context, state) => const ImamsPage(),
+          ),
+
+          // Muezzins
+          GoRoute(
+            path: '/muezzins',
+            name: 'muezzins',
+            builder: (context, state) => const MuezzinsPage(),
           ),
         ],
       ),
@@ -372,46 +322,6 @@ class EventDetailPage extends StatelessWidget {
   }
 }
 
-class NewsDetailPage extends StatelessWidget {
-  final String articleId;
-
-  const NewsDetailPage({super.key, required this.articleId});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Article')),
-      body: Center(child: Text('Article ID: $articleId')),
-    );
-  }
-}
-
-class BookDetailPage extends StatelessWidget {
-  final String bookId;
-
-  const BookDetailPage({super.key, required this.bookId});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Livre')),
-      body: Center(child: Text('Livre ID: $bookId')),
-    );
-  }
-}
-
-class AudioBooksPage extends StatelessWidget {
-  const AudioBooksPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Livres Audio')),
-      body: const Center(child: Text('Livres Audio Islamiques')),
-    );
-  }
-}
-
 class EditProfilePage extends StatelessWidget {
   const EditProfilePage({super.key});
 
@@ -419,7 +329,7 @@ class EditProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Modifier le profil')),
-      body: const Center(child: Text('Édition du profil')),
+      body: const Center(child: Text('Page de modification du profil')),
     );
   }
 }
@@ -443,7 +353,7 @@ class DonationHistoryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Historique des dons')),
-      body: const Center(child: Text('Historique des dons')),
+      body: const Center(child: Text('Historique des donations')),
     );
   }
 }
@@ -454,8 +364,8 @@ class NotificationSettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Notifications')),
-      body: const Center(child: Text('Paramètres de notifications')),
+      appBar: AppBar(title: const Text('Paramètres de notification')),
+      body: const Center(child: Text('Paramètres de notification')),
     );
   }
 }
@@ -466,20 +376,8 @@ class LanguageSettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Langue')),
+      appBar: AppBar(title: const Text('Paramètres de langue')),
       body: const Center(child: Text('Paramètres de langue')),
-    );
-  }
-}
-
-class AboutPage extends StatelessWidget {
-  const AboutPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('À propos')),
-      body: const Center(child: Text('À propos de l\'application')),
     );
   }
 }
@@ -491,7 +389,7 @@ class IslamicCalendarPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Calendrier Islamique')),
-      body: const Center(child: Text('Calendrier Islamique complet')),
+      body: const Center(child: Text('Calendrier Islamique')),
     );
   }
 }
@@ -516,7 +414,7 @@ class DonationPaymentPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Montant: ${amount}€'),
+            Text('Montant: $amount GNF'),
             Text('Catégorie: $category'),
             Text('Méthode: $method'),
           ],
@@ -534,240 +432,8 @@ class EventRegistrationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Inscription')),
-      body: Center(child: Text('Inscription à l\'événement $eventId')),
-    );
-  }
-}
-
-// Pages temporaires pour l'administration
-class TempNewsManagementPage extends StatelessWidget {
-  const TempNewsManagementPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gestion des Actualités'),
-        backgroundColor: Colors.orange,
-        foregroundColor: Colors.white,
-      ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.article, size: 64, color: Colors.orange),
-            SizedBox(height: 16),
-            Text(
-              'Gestion des Actualités',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Page en cours de développement',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class TempAddNewsPage extends StatelessWidget {
-  const TempAddNewsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Nouvelle Actualité'),
-        backgroundColor: Colors.orange,
-        foregroundColor: Colors.white,
-      ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.add_circle, size: 64, color: Colors.orange),
-            SizedBox(height: 16),
-            Text(
-              'Ajouter une Actualité',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Page en cours de développement',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class TempBookManagementPage extends StatelessWidget {
-  const TempBookManagementPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gestion de la Bibliothèque'),
-        backgroundColor: Colors.purple,
-        foregroundColor: Colors.white,
-      ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.library_books, size: 64, color: Colors.purple),
-            SizedBox(height: 16),
-            Text(
-              'Gestion des Livres',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Page en cours de développement',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class TempAddBookPage extends StatelessWidget {
-  const TempAddBookPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ajouter un Livre'),
-        backgroundColor: Colors.purple,
-        foregroundColor: Colors.white,
-      ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.add_circle, size: 64, color: Colors.purple),
-            SizedBox(height: 16),
-            Text(
-              'Ajouter un Livre',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Page en cours de développement',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class TempDonationManagementPage extends StatelessWidget {
-  const TempDonationManagementPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gestion des Dons'),
-        backgroundColor: Colors.amber,
-        foregroundColor: Colors.white,
-      ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.monetization_on, size: 64, color: Colors.amber),
-            SizedBox(height: 16),
-            Text(
-              'Gestion des Campagnes de Dons',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Page en cours de développement',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class TempAddDonationPage extends StatelessWidget {
-  const TempAddDonationPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Nouvelle Campagne'),
-        backgroundColor: Colors.amber,
-        foregroundColor: Colors.white,
-      ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.add_circle, size: 64, color: Colors.amber),
-            SizedBox(height: 16),
-            Text(
-              'Créer une Campagne de Don',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Page en cours de développement',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class TempUserManagementPage extends StatelessWidget {
-  const TempUserManagementPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gestion des Utilisateurs'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-      ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.people, size: 64, color: Colors.blue),
-            SizedBox(height: 16),
-            Text(
-              'Gestion des Utilisateurs',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Page en cours de développement',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-      ),
+      appBar: AppBar(title: const Text('Inscription à l\'événement')),
+      body: Center(child: Text('Inscription pour l\'événement: $eventId')),
     );
   }
 }

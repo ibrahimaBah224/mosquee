@@ -4,14 +4,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 // Import des services
 import '../services/firebase_service.dart';
 import '../services/firestore_service.dart';
+import '../services/cloudinary_service.dart';
+import '../config/app_config.dart';
 
 // Import des repositories
 import '../repositories/user_repository.dart';
 import '../repositories/prayer_repository.dart';
 import '../repositories/event_repository.dart';
 import '../repositories/donation_repository.dart';
-import '../repositories/news_repository.dart';
-import '../repositories/book_repository.dart';
 
 // Import des blocs
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
@@ -35,13 +35,26 @@ class DependencyInjection {
     await firestoreService.initialize();
     getIt.registerSingleton<FirestoreService>(firestoreService);
 
+    // Cloudinary Service
+    if (AppConfig.cloudinaryEnabled) {
+      try {
+        await CloudinaryService.instance.initialize(
+          cloudName: AppConfig.cloudinaryCloudName,
+          apiKey: AppConfig.cloudinaryApiKey,
+          apiSecret: AppConfig.cloudinaryApiSecret,
+        );
+        getIt.registerSingleton<CloudinaryService>(CloudinaryService.instance);
+      } catch (e) {
+        print('Failed to initialize Cloudinary: $e');
+        // L'application peut continuer sans Cloudinary
+      }
+    }
+
     // Repositories
     getIt.registerLazySingleton<UserRepository>(() => UserRepository());
     getIt.registerLazySingleton<PrayerRepository>(() => PrayerRepository());
     getIt.registerLazySingleton<EventRepository>(() => EventRepository());
     getIt.registerLazySingleton<DonationRepository>(() => DonationRepository());
-    getIt.registerLazySingleton<NewsRepository>(() => NewsRepository());
-    getIt.registerLazySingleton<BookRepository>(() => BookRepository());
 
     // Blocs
     getIt.registerFactory<AuthBloc>(() => AuthBloc());
