@@ -33,11 +33,13 @@ class _EventManagementPageState extends State<EventManagementPage> {
     try {
       // Charger tous les événements avec stream
       _firestoreService.getAllEventsStream().listen((events) {
-        setState(() {
-          _allEvents = events;
-          _filterEvents();
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _allEvents = events;
+            _filterEvents();
+            _isLoading = false;
+          });
+        }
       });
     } catch (e) {
       setState(() => _isLoading = false);

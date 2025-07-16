@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/firebase_service.dart';
 import '../services/firestore_service.dart';
 import '../services/cloudinary_service.dart';
+import '../services/notification_service.dart';
 import '../config/app_config.dart';
 
 // Import des repositories
@@ -34,6 +35,9 @@ class DependencyInjection {
     final firestoreService = FirestoreService();
     await firestoreService.initialize();
     getIt.registerSingleton<FirestoreService>(firestoreService);
+
+    // Notification Service (initialisé par FirebaseService)
+    getIt.registerSingleton<NotificationService>(NotificationService());
 
     // Cloudinary Service
     if (AppConfig.cloudinaryEnabled) {

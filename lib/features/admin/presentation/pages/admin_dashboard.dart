@@ -7,6 +7,7 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../../core/services/admin_auth_service.dart';
 import '../../../../core/services/firestore_service.dart';
 import '../../../../core/di/dependency_injection.dart';
+import 'notification_management_page.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -294,6 +295,19 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   Icons.record_voice_over,
                   Colors.indigo,
                   () => context.go('/admin/muezzins'),
+                ),
+                _buildActionCard(
+                  context,
+                  'Notifications',
+                  'Envoyer des notifications push',
+                  Icons.notifications_active,
+                  Colors.orange,
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NotificationManagementPage(),
+                    ),
+                  ),
                 ),
               ],
             ),

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/muezzin.dart';
+import 'notification_service.dart';
 
 class MuezzinService {
   static final MuezzinService _instance = MuezzinService._internal();
@@ -94,12 +95,38 @@ class MuezzinService {
         print('Muezzin ${muezzin.fullName} créé avec l\'ID: ${docRef.id}');
       }
 
+      // 🔔 Envoyer notification push pour nouveau Muezzin
+      try {
+        await NotificationService().notifyNewStaffMember(
+          memberName: muezzin.fullName,
+          position: _getStatusDisplayName(muezzin.status),
+          staffType: StaffType.muezzin,
+        );
+      } catch (notifError) {
+        if (kDebugMode) {
+          print('⚠️ Erreur notification pour nouveau Muezzin: $notifError');
+        }
+        // Continue même si la notification échoue
+      }
+
       return docRef.id;
     } catch (e) {
       if (kDebugMode) {
         print('Erreur lors de la création du Muezzin: $e');
       }
       throw Exception('Erreur lors de la création: $e');
+    }
+  }
+
+  /// Obtient le nom d'affichage du statut
+  String _getStatusDisplayName(MuezzinStatus status) {
+    switch (status) {
+      case MuezzinStatus.principal:
+        return 'Muezzin Principal';
+      case MuezzinStatus.assistant:
+        return 'Muezzin Assistant';
+      case MuezzinStatus.remplacant:
+        return 'Muezzin Remplaçant';
     }
   }
 

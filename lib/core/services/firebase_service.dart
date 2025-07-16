@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart';
+import 'notification_service.dart';
 
 class FirebaseService {
   static final FirebaseService _instance = FirebaseService._internal();
@@ -22,6 +23,9 @@ class FirebaseService {
     try {
       // Configuration Firebase Messaging
       await _initializeMessaging();
+
+      // Initialiser le service de notifications
+      await NotificationService().initialize();
 
       if (kDebugMode) {
         print('Firebase Service initialized successfully');

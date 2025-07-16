@@ -26,7 +26,7 @@ class _AddEventPageState extends State<AddEventPage> {
     minute: TimeOfDay.now().minute,
   );
   EventCategory _selectedCategory = EventCategory.community;
-  EventStatus _selectedStatus = EventStatus.draft;
+  EventStatus _selectedStatus = EventStatus.published;
   bool _isFree = true;
   bool _requiresRegistration = false;
   int _maxParticipants = 0;

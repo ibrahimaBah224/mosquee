@@ -5,6 +5,7 @@ import '../models/user_profile.dart';
 import '../models/prayer_time.dart';
 import '../models/event.dart';
 import '../models/donation.dart';
+import 'notification_service.dart';
 
 class FirestoreService {
   static final FirestoreService _instance = FirestoreService._internal();
@@ -201,6 +202,39 @@ class FirestoreService {
   Future<String> createEvent(Event event) async {
     try {
       final docRef = await _eventsCollection.add(event.toFirestore());
+
+      // 🔔 Envoyer notification push pour nouvel événement (seulement si publié)
+      if (kDebugMode) {
+        print(
+            '📋 Nouvel événement créé: ${event.title} - Status: ${event.status}');
+      }
+
+      if (event.status == EventStatus.published) {
+        if (kDebugMode) {
+          print('🔔 Envoi notification pour événement publié: ${event.title}');
+        }
+        try {
+          await NotificationService().notifyNewEvent(
+            eventTitle: event.title,
+            eventDate: event.startDate,
+            eventLocation: event.location,
+          );
+          if (kDebugMode) {
+            print('✅ Notification envoyée avec succès pour: ${event.title}');
+          }
+        } catch (notifError) {
+          if (kDebugMode) {
+            print('⚠️ Erreur notification pour nouvel événement: $notifError');
+          }
+          // Continue même si la notification échoue
+        }
+      } else {
+        if (kDebugMode) {
+          print(
+              '⏸️ Notification non envoyée (événement non publié): ${event.title}');
+        }
+      }
+
       return docRef.id;
     } catch (e) {
       throw Exception('Erreur lors de la création de l\'événement: $e');
@@ -209,7 +243,54 @@ class FirestoreService {
 
   Future<void> updateEvent(Event event) async {
     try {
+      // Récupérer l'ancien événement pour comparer les statuts
+      final oldEvent = await getEvent(event.id);
+
+      if (kDebugMode) {
+        print('📝 Mise à jour événement: ${event.title}');
+        print('📊 Ancien statut: ${oldEvent?.status}');
+        print('📊 Nouveau statut: ${event.status}');
+      }
+
       await _eventsCollection.doc(event.id).update(event.toFirestore());
+
+      // 🔔 Envoyer notification si l'événement vient d'être publié
+      if (oldEvent != null &&
+          oldEvent.status != EventStatus.published &&
+          event.status == EventStatus.published) {
+        if (kDebugMode) {
+          print('🔔 Événement publié: ${event.title} - Envoi notification...');
+        }
+
+        try {
+          await NotificationService().notifyNewEvent(
+            eventTitle: event.title,
+            eventDate: event.startDate,
+            eventLocation: event.location,
+          );
+          if (kDebugMode) {
+            print(
+                '✅ Notification envoyée pour événement publié: ${event.title}');
+          }
+        } catch (notifError) {
+          if (kDebugMode) {
+            print('⚠️ Erreur notification pour événement publié: $notifError');
+          }
+          // Continue même si la notification échoue
+        }
+      } else {
+        if (kDebugMode) {
+          if (oldEvent == null) {
+            print('⏸️ Notification non envoyée: événement ancien non trouvé');
+          } else if (oldEvent.status == EventStatus.published) {
+            print(
+                '⏸️ Notification non envoyée: événement déjà publié (${oldEvent.status} -> ${event.status})');
+          } else if (event.status != EventStatus.published) {
+            print(
+                '⏸️ Notification non envoyée: nouveau statut non publié (${oldEvent.status} -> ${event.status})');
+          }
+        }
+      }
     } catch (e) {
       throw Exception('Erreur lors de la mise à jour de l\'événement: $e');
     }
@@ -377,11 +458,59 @@ class FirestoreService {
   /// Mettre à jour le statut d'un événement
   Future<void> updateEventStatus(String eventId, EventStatus status) async {
     try {
+      // Récupérer l'ancien événement pour comparer les statuts
+      final oldEvent = await getEvent(eventId);
+
+      if (kDebugMode) {
+        print('📝 Changement statut événement: $eventId');
+        print('📊 Ancien statut: ${oldEvent?.status}');
+        print('📊 Nouveau statut: $status');
+      }
+
       await _eventsCollection.doc(eventId).update({
         'status': status.name,
         'updatedAt': DateTime.now().toIso8601String(),
       });
       debugPrint('✅ Event status updated: $eventId -> ${status.name}');
+
+      // 🔔 Envoyer notification si l'événement vient d'être publié
+      if (oldEvent != null &&
+          oldEvent.status != EventStatus.published &&
+          status == EventStatus.published) {
+        if (kDebugMode) {
+          print(
+              '🔔 Événement publié: ${oldEvent.title} - Envoi notification...');
+        }
+
+        try {
+          await NotificationService().notifyNewEvent(
+            eventTitle: oldEvent.title,
+            eventDate: oldEvent.startDate,
+            eventLocation: oldEvent.location,
+          );
+          if (kDebugMode) {
+            print(
+                '✅ Notification envoyée pour événement publié: ${oldEvent.title}');
+          }
+        } catch (notifError) {
+          if (kDebugMode) {
+            print('⚠️ Erreur notification pour événement publié: $notifError');
+          }
+          // Continue même si la notification échoue
+        }
+      } else {
+        if (kDebugMode) {
+          if (oldEvent == null) {
+            print('⏸️ Notification non envoyée: événement ancien non trouvé');
+          } else if (oldEvent.status == EventStatus.published) {
+            print(
+                '⏸️ Notification non envoyée: événement déjà publié (${oldEvent.status} -> $status)');
+          } else if (status != EventStatus.published) {
+            print(
+                '⏸️ Notification non envoyée: nouveau statut non publié (${oldEvent.status} -> $status)');
+          }
+        }
+      }
     } catch (e) {
       debugPrint('❌ Error updating event status: $e');
       throw Exception('Erreur lors de la mise à jour du statut: $e');

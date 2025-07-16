@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Historique des notifications
+    match /notification_history/{document} {
+      allow read, write: if true; // Accessible pour l'app admin
+    }
+    
+    // Collections principales de l'application
+    match /users/{userId} {
+      allow read, write: if true; // Accessible pour l'admin
+    }
+    
+    match /events/{document} {
+      allow read: if true; // Les événements sont publics
+      allow write: if true; // Permet la modification par l'admin
+    }
+    
+    match /donations/{document} {
+      allow read, write: if true; // Accessible pour l'admin
+    }
+    
+    match /mosque_info/{document} {
+      allow read: if true; // Les infos mosquée sont publiques
+      allow write: if true; // Permet la modification par l'admin
+    }
+    
+    match /imams/{document} {
+      allow read: if true; // Les imams sont publics
+      allow write: if true; // Permet la modification par l'admin
+    }
+    
+    match /muezzins/{document} {
+      allow read: if true; // Les muezzins sont publics
+      allow write: if true; // Permet la modification par l'admin
+    }
+    
+    match /prayer_times/{document} {
+      allow read: if true; // Les horaires de prière sont publics
+      allow write: if true; // Permet la modification par l'admin
+    }
+    
+    match /prayer_config/{document} {
+      allow read: if true; // La configuration de prière est publique
+      allow write: if true; // Permet la modification par l'admin
+    }
+    
+    // Collections de campagnes de dons
+    match /donation_campaigns/{document} {
+      allow read: if true; // Les campagnes sont publiques
+      allow write: if true; // Permet la modification par l'admin
+    }
+    
+    // Règle par défaut pour les autres collections
+    match /{document=**} {
+      allow read, write: if true; // Accessible pour l'admin
+    }
+  }
+} 

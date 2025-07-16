@@ -40,6 +40,20 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-messaging-compat.js"></script>
+  
+  <!-- Register Firebase Messaging Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .then(function(registration) {
+          console.log('Firebase SW registered: ', registration);
+        })
+        .catch(function(registrationError) {
+          console.log('Firebase SW registration failed: ', registrationError);
+        });
+    }
+  </script>
   
   <script src="flutter_bootstrap.js" async></script>
 </body>

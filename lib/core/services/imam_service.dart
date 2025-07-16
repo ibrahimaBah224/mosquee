@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/imam.dart';
+import 'notification_service.dart';
 
 class ImamService {
   static final ImamService _instance = ImamService._internal();
@@ -93,12 +94,40 @@ class ImamService {
         print('Imam ${imam.fullName} créé avec l\'ID: ${docRef.id}');
       }
 
+      // 🔔 Envoyer notification push pour nouveau Imam
+      try {
+        await NotificationService().notifyNewStaffMember(
+          memberName: imam.fullName,
+          position: _getRankDisplayName(imam.rank),
+          staffType: StaffType.imam,
+        );
+      } catch (notifError) {
+        if (kDebugMode) {
+          print('⚠️ Erreur notification pour nouvel Imam: $notifError');
+        }
+        // Continue même si la notification échoue
+      }
+
       return docRef.id;
     } catch (e) {
       if (kDebugMode) {
         print('Erreur lors de la création de l\'Imam: $e');
       }
       throw Exception('Erreur lors de la création: $e');
+    }
+  }
+
+  /// Obtient le nom d'affichage du rang
+  String _getRankDisplayName(ImamRank rank) {
+    switch (rank) {
+      case ImamRank.principal:
+        return 'Imam Principal';
+      case ImamRank.adjoint:
+        return 'Imam Adjoint';
+      case ImamRank.assistant:
+        return 'Imam Assistant';
+      case ImamRank.visiteur:
+        return 'Imam Visiteur';
     }
   }
 

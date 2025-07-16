@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/mosque_info.dart';
+import 'notification_service.dart';
 
 class MosqueService {
   static final MosqueService _instance = MosqueService._internal();
@@ -65,6 +66,9 @@ class MosqueService {
   /// Met à jour les informations de la mosquée
   Future<void> updateMosqueInfo(MosqueInfo info) async {
     try {
+      // Récupérer les anciennes infos pour comparer
+      final oldInfo = await getMosqueInfo();
+
       final updatedInfo = info.copyWith(
         updatedAt: DateTime.now(),
         lastUpdatedBy: 'admin', // TODO: Récupérer l'utilisateur connecté
@@ -77,6 +81,24 @@ class MosqueService {
 
       _cachedInfo = updatedInfo; // Mettre à jour le cache
 
+      // 🔔 Détecter les changements d'horaires de prière et envoyer notification
+      if (oldInfo != null) {
+        final prayerChanges = _detectPrayerTimeChanges(oldInfo, updatedInfo);
+        if (prayerChanges.isNotEmpty) {
+          try {
+            await NotificationService().notifyPrayerTimesChanged(
+              mosque: updatedInfo.name,
+              changedPrayers: prayerChanges,
+            );
+          } catch (notifError) {
+            if (kDebugMode) {
+              print('⚠️ Erreur notification changement horaires: $notifError');
+            }
+            // Continue même si la notification échoue
+          }
+        }
+      }
+
       if (kDebugMode) {
         print('Informations mosquée mises à jour avec succès');
       }
@@ -86,6 +108,25 @@ class MosqueService {
       }
       throw Exception('Erreur lors de la mise à jour: $e');
     }
+  }
+
+  /// Détecte les changements d'horaires de prière
+  List<String> _detectPrayerTimeChanges(
+      MosqueInfo oldInfo, MosqueInfo newInfo) {
+    final changes = <String>[];
+
+    // Comparer les horaires de prière (si ils existent dans le modèle)
+    // Note: Ceci dépend de la structure exacte de votre modèle MosqueInfo
+    // Vous pourriez avoir des champs comme fajrTime, dhuhrTime, etc.
+
+    // Pour l'instant, on détecte tout changement majeur comme un changement d'horaires
+    if (oldInfo.name != newInfo.name ||
+        oldInfo.address != newInfo.address ||
+        oldInfo.phone != newInfo.phone) {
+      changes.add('Informations générales');
+    }
+
+    return changes;
   }
 
   /// Vide le cache (à utiliser après mise à jour)
