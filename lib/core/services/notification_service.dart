@@ -3,7 +3,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
-import 'dart:html' as html show Notification;
+import 'dart:async';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -24,6 +24,7 @@ class NotificationService {
   static const String TOPIC_ADMIN = 'admin';
 
   bool _initialized = false;
+  late StreamSubscription _liveNotificationSubscription;
 
   /// Initialise le service de notifications
   Future<void> initialize() async {
@@ -41,6 +42,9 @@ class NotificationService {
 
       // S'abonner aux topics par défaut
       await _subscribeToDefaultTopics();
+
+      // 🔥 NOUVEAU : Écouter les notifications live pour tous les appareils
+      await _startLiveNotificationListener();
 
       _initialized = true;
       debugPrint('✅ NotificationService initialized successfully');
@@ -112,6 +116,48 @@ class NotificationService {
     debugPrint('✅ Subscribed to default topics');
   }
 
+  /// 🔥 Écoute les notifications live pour diffusion en temps réel
+  Future<void> _startLiveNotificationListener() async {
+    try {
+      debugPrint('🎧 Démarrage du listener de notifications live...');
+
+      _liveNotificationSubscription = _firestore
+          .collection('live_notifications')
+          .where('timestamp',
+              isGreaterThan: DateTime.now().millisecondsSinceEpoch)
+          .orderBy('timestamp', descending: true)
+          .limit(1)
+          .snapshots()
+          .listen((snapshot) async {
+        for (var doc in snapshot.docChanges) {
+          if (doc.type == DocumentChangeType.added) {
+            final data = doc.doc.data() as Map<String, dynamic>;
+
+            // Afficher la notification sur cet appareil
+            await _showLocalNotification(
+              title: data['title'] ?? 'MOMED',
+              body: data['body'] ?? '',
+              data: Map<String, dynamic>.from(data['data'] ?? {}),
+            );
+
+            debugPrint('📢 Notification broadcast reçue: ${data['title']}');
+
+            // Supprimer la notification après 5 secondes pour éviter l'accumulation
+            Future.delayed(const Duration(seconds: 5), () {
+              doc.doc.reference.delete().catchError((e) {
+                debugPrint('⚠️ Erreur suppression notification: $e');
+              });
+            });
+          }
+        }
+      });
+
+      debugPrint('✅ Live notification listener démarré');
+    } catch (e) {
+      debugPrint('❌ Erreur démarrage live listener: $e');
+    }
+  }
+
   /// S'abonne à un topic spécifique
   Future<void> subscribeToTopic(String topic) async {
     try {
@@ -163,26 +209,15 @@ class NotificationService {
     Map<String, dynamic>? data,
   }) async {
     if (kIsWeb) {
-      // Utiliser l'API Notification native du navigateur pour le web
+      // Sur le web déployé, on utilise le service worker Firebase
       try {
-        if (html.Notification.permission == 'granted') {
-          debugPrint('🌐 Affichage notification web native: $title');
-          final notification = html.Notification(
-            title,
-            body: body,
-            icon: '/icons/Icon-192.png', // Icône de l'app
-            tag: 'momed-notification',
-          );
+        debugPrint('🌐 Notification web (via service worker): $title');
+        debugPrint('💬 Message: $body');
 
-          // Auto-fermer après 5 secondes
-          Future.delayed(const Duration(seconds: 5), () {
-            notification.close();
-          });
+        // Pour le web déployé, simuler une notification locale
+        await _simulateWebNotification(title, body);
 
-          debugPrint('✅ Notification web affichée avec succès');
-        } else {
-          debugPrint('❌ Permissions de notification non accordées');
-        }
+        debugPrint('✅ Notification web simulée');
       } catch (e) {
         debugPrint('❌ Erreur notification web: $e');
       }
@@ -229,15 +264,16 @@ class NotificationService {
     NotificationType type = NotificationType.general,
   }) async {
     try {
-      debugPrint('🔔 Envoi notification push - Plan gratuit Firebase');
+      debugPrint('🔔 Envoi notification broadcast - Plan gratuit Firebase');
       debugPrint('📋 Topic: $topic');
       debugPrint('🏷️ Titre: $title');
       debugPrint('💬 Message: $body');
 
-      // Afficher une notification locale
-      await _showLocalNotification(
+      // 🔥 NOUVEAU : Écrire dans live_notifications pour broadcast à tous les appareils
+      await _sendBroadcastNotification(
         title: title,
         body: body,
+        topic: topic,
         data: data,
       );
 
@@ -250,7 +286,8 @@ class NotificationService {
         data: data,
       );
 
-      debugPrint('✅ Notification envoyée avec succès');
+      debugPrint(
+          '✅ Notification broadcast envoyée à tous les appareils connectés');
     } catch (e) {
       debugPrint('❌ Erreur lors de l\'envoi de la notification: $e');
       throw Exception('Erreur lors de l\'envoi de la notification: $e');
@@ -430,6 +467,51 @@ class NotificationService {
     ];
 
     return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+
+  /// Simule une notification web pour les sites déployés
+  Future<void> _simulateWebNotification(String title, String body) async {
+    // Pour le web déployé, on log juste les détails
+    // Les notifications réelles nécessiteraient un serveur push
+    debugPrint('🔔 NOTIFICATION MOMED: $title');
+    debugPrint('📝 Message: $body');
+    debugPrint('📍 Visible dans l\'historique des notifications admin');
+  }
+
+  /// 📡 Envoie une notification broadcast à tous les appareils connectés
+  Future<void> _sendBroadcastNotification({
+    required String title,
+    required String body,
+    required String topic,
+    Map<String, dynamic>? data,
+  }) async {
+    try {
+      final notificationData = {
+        'title': title,
+        'body': body,
+        'topic': topic,
+        'data': data ?? {},
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+        'sentBy': 'admin',
+      };
+
+      await _firestore.collection('live_notifications').add(notificationData);
+
+      debugPrint('📡 Notification ajoutée à live_notifications pour broadcast');
+    } catch (e) {
+      debugPrint('❌ Erreur envoi broadcast notification: $e');
+      throw e;
+    }
+  }
+
+  /// Nettoie le listener lors de la fermeture
+  void dispose() {
+    try {
+      _liveNotificationSubscription.cancel();
+      debugPrint('🛑 Live notification listener fermé');
+    } catch (e) {
+      debugPrint('⚠️ Erreur fermeture listener: $e');
+    }
   }
 }
 

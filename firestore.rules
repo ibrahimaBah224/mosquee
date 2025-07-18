@@ -6,6 +6,11 @@ service cloud.firestore {
       allow read, write: if true; // Accessible pour l'app admin
     }
     
+    // 🔥 Notifications live pour broadcast en temps réel
+    match /live_notifications/{document} {
+      allow read, write: if true; // Accessible pour le broadcast
+    }
+    
     // Collections principales de l'application
     match /users/{userId} {
       allow read, write: if true; // Accessible pour l'admin
